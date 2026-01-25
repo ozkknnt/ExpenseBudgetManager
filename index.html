@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Budget Manager - Overview</title>
+    <link rel="stylesheet" href="assets/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">EB</div>
+          <div>
+            <h1>Expense Budget</h1>
+            <div class="tag-row">
+              <span class="tag">FY 2026</span>
+              <span class="tag">Admin</span>
+            </div>
+          </div>
+        </div>
+        <nav>
+          <div class="nav-section">Core</div>
+          <a class="nav-item active" href="index.html">Overview</a>
+          <a class="nav-item" href="pages/events.html">Events</a>
+          <a class="nav-item" href="pages/budgets.html">Budgets</a>
+          <a class="nav-item" href="pages/actuals.html">Actuals</a>
+          <div class="nav-section">Admin</div>
+          <a class="nav-item" href="pages/settings.html">Settings</a>
+        </nav>
+        <div class="sidebar-footer">
+          Latest sync: 2 minutes ago<br />
+          Budget variance review due Friday.
+        </div>
+      </aside>
+      <main class="content">
+        <header class="header">
+          <div class="header-title">
+            <h2>Overview</h2>
+            <p>Track event budgets, monthly allocations, and current actuals.</p>
+          </div>
+          <div class="header-actions">
+            <input class="input-chip" type="search" placeholder="Search" />
+            <button class="button secondary" data-theme-toggle>Dark</button>
+            <button class="button" data-modal-open>New Budget</button>
+          </div>
+        </header>
+
+        <section class="cards">
+          <div class="card" style="animation-delay: 0.05s;">
+            <h3>Total Budget</h3>
+            <div class="metric">$2.48M</div>
+            <p>12 active events</p>
+          </div>
+          <div class="card" style="animation-delay: 0.1s;">
+            <h3>Actuals</h3>
+            <div class="metric">$1.36M</div>
+            <p>55% of plan</p>
+          </div>
+          <div class="card" style="animation-delay: 0.15s;">
+            <h3>Pending Reviews</h3>
+            <div class="metric">18</div>
+            <p>Awaiting approvals</p>
+          </div>
+          <div class="card" style="animation-delay: 0.2s;">
+            <h3>Variance Risk</h3>
+            <div class="metric">4.2%</div>
+            <p>Top 3 events flagged</p>
+          </div>
+        </section>
+
+        <section class="grid">
+          <div class="panel">
+            <h3>Budget Items Snapshot</h3>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Event</th>
+                  <th>Category</th>
+                  <th>Monthly</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Global Summit</td>
+                  <td>Venue</td>
+                  <td>$180K</td>
+                  <td><span class="badge">On track</span></td>
+                </tr>
+                <tr>
+                  <td>Product Roadshow</td>
+                  <td>Travel</td>
+                  <td>$72K</td>
+                  <td><span class="badge">Review</span></td>
+                </tr>
+                <tr>
+                  <td>Partner Expo</td>
+                  <td>Marketing</td>
+                  <td>$48K</td>
+                  <td><span class="badge">Draft</span></td>
+                </tr>
+                <tr>
+                  <td>Customer Forum</td>
+                  <td>Production</td>
+                  <td>$95K</td>
+                  <td><span class="badge">On track</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="panel">
+            <h3>Quick Entry</h3>
+            <form class="form">
+              <div>
+                <label>Event</label>
+                <select>
+                  <option>Global Summit</option>
+                  <option>Product Roadshow</option>
+                  <option>Partner Expo</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <div>
+                  <label>Category</label>
+                  <select>
+                    <option>Venue</option>
+                    <option>Travel</option>
+                    <option>Marketing</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Month</label>
+                  <select>
+                    <option>Jan</option>
+                    <option>Feb</option>
+                    <option>Mar</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label>Amount</label>
+                <input type="text" placeholder="$0" />
+              </div>
+              <div>
+                <label>Notes</label>
+                <textarea placeholder="Optional notes"></textarea>
+              </div>
+              <button class="button" type="button">Save Draft</button>
+            </form>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" data-modal>
+      <div class="modal">
+        <div class="modal-header">
+          <h4>New Budget Item</h4>
+          <button class="button secondary" data-modal-close>Close</button>
+        </div>
+        <form class="form">
+          <div>
+            <label>Budget Code</label>
+            <input type="text" placeholder="EB-2026-001" />
+          </div>
+          <div>
+            <label>Item Name</label>
+            <input type="text" placeholder="Venue rental" />
+          </div>
+          <div class="form-row">
+            <div>
+              <label>Fiscal Year</label>
+              <input type="text" placeholder="2026" />
+            </div>
+            <div>
+              <label>Monthly Amount</label>
+              <input type="text" placeholder="$0" />
+            </div>
+          </div>
+          <button class="button" type="button">Create Item</button>
+        </form>
+      </div>
+    </div>
+
+    <script src="assets/app.js"></script>
+  </body>
+</html>

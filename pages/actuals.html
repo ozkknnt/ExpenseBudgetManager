@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Budget Manager - Actuals</title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">EB</div>
+          <div>
+            <h1>Expense Budget</h1>
+            <div class="tag-row">
+              <span class="tag">FY 2026</span>
+              <span class="tag">Admin</span>
+            </div>
+          </div>
+        </div>
+        <nav>
+          <div class="nav-section">Core</div>
+          <a class="nav-item" href="../index.html">Overview</a>
+          <a class="nav-item" href="events.html">Events</a>
+          <a class="nav-item" href="budgets.html">Budgets</a>
+          <a class="nav-item active" href="actuals.html">Actuals</a>
+          <div class="nav-section">Admin</div>
+          <a class="nav-item" href="settings.html">Settings</a>
+        </nav>
+        <div class="sidebar-footer">
+          Actuals submitted: 78%<br />
+          Finalized entries: 62.
+        </div>
+      </aside>
+      <main class="content">
+        <header class="header">
+          <div class="header-title">
+            <h2>Actuals</h2>
+            <p>Track real spend against approved budget items.</p>
+          </div>
+          <div class="header-actions">
+            <input class="input-chip" type="search" placeholder="Search actuals" />
+            <button class="button secondary" data-theme-toggle>Dark</button>
+            <button class="button" data-modal-open>Log Actual</button>
+          </div>
+        </header>
+
+        <section class="panel">
+          <h3>Monthly Actuals</h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Month</th>
+                <th>Actual</th>
+                <th>Status</th>
+                <th>Owner</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Venue Rental</td>
+                <td>Mar</td>
+                <td>$54K</td>
+                <td><span class="badge">Finalized</span></td>
+                <td>Operations</td>
+              </tr>
+              <tr>
+                <td>Speaker Travel</td>
+                <td>Mar</td>
+                <td>$9K</td>
+                <td><span class="badge">Draft</span></td>
+                <td>Operations</td>
+              </tr>
+              <tr>
+                <td>Roadshow Logistics</td>
+                <td>Feb</td>
+                <td>$17K</td>
+                <td><span class="badge">Review</span></td>
+                <td>Marketing</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="panel">
+          <h3>Actual Entry</h3>
+          <form class="form">
+            <div class="form-row">
+              <div>
+                <label>Budget Item</label>
+                <select>
+                  <option>Venue Rental</option>
+                  <option>Speaker Travel</option>
+                  <option>Logistics</option>
+                </select>
+              </div>
+              <div>
+                <label>Month</label>
+                <select>
+                  <option>Jan</option>
+                  <option>Feb</option>
+                  <option>Mar</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div>
+                <label>Actual Amount</label>
+                <input type="text" placeholder="$0" />
+              </div>
+              <div>
+                <label>Status</label>
+                <select>
+                  <option>Draft</option>
+                  <option>Review</option>
+                  <option>Finalized</option>
+                </select>
+              </div>
+            </div>
+            <button class="button" type="button">Submit Actual</button>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" data-modal>
+      <div class="modal">
+        <div class="modal-header">
+          <h4>Log Actual</h4>
+          <button class="button secondary" data-modal-close>Close</button>
+        </div>
+        <form class="form">
+          <div>
+            <label>Budget Item</label>
+            <input type="text" placeholder="Venue Rental" />
+          </div>
+          <div class="form-row">
+            <div>
+              <label>Month</label>
+              <input type="text" placeholder="Mar" />
+            </div>
+            <div>
+              <label>Actual Amount</label>
+              <input type="text" placeholder="$0" />
+            </div>
+          </div>
+          <button class="button" type="button">Save Actual</button>
+        </form>
+      </div>
+    </div>
+
+    <script src="../assets/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Budget Manager - Events</title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">EB</div>
+          <div>
+            <h1>Expense Budget</h1>
+            <div class="tag-row">
+              <span class="tag">FY 2026</span>
+              <span class="tag">Admin</span>
+            </div>
+          </div>
+        </div>
+        <nav>
+          <div class="nav-section">Core</div>
+          <a class="nav-item" href="../index.html">Overview</a>
+          <a class="nav-item active" href="events.html">Events</a>
+          <a class="nav-item" href="budgets.html">Budgets</a>
+          <a class="nav-item" href="actuals.html">Actuals</a>
+          <div class="nav-section">Admin</div>
+          <a class="nav-item" href="settings.html">Settings</a>
+        </nav>
+        <div class="sidebar-footer">
+          Live events: 12<br />
+          Next cadence review in 3 days.
+        </div>
+      </aside>
+      <main class="content">
+        <header class="header">
+          <div class="header-title">
+            <h2>Events</h2>
+            <p>Manage event portfolios and active fiscal year priorities.</p>
+          </div>
+          <div class="header-actions">
+            <input class="input-chip" type="search" placeholder="Search events" />
+            <button class="button secondary" data-theme-toggle>Dark</button>
+            <button class="button" data-modal-open>Create Event</button>
+          </div>
+        </header>
+
+        <section class="panel">
+          <h3>Event Directory</h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Code</th>
+                <th>Owner</th>
+                <th>Priority</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Global Summit</td>
+                <td>EV-2026-01</td>
+                <td>Operations</td>
+                <td><span class="badge">Tier 1</span></td>
+                <td class="table-actions">
+                  <button class="button secondary">View</button>
+                  <button class="button">Edit</button>
+                </td>
+              </tr>
+              <tr>
+                <td>Product Roadshow</td>
+                <td>EV-2026-02</td>
+                <td>Marketing</td>
+                <td><span class="badge">Tier 2</span></td>
+                <td class="table-actions">
+                  <button class="button secondary">View</button>
+                  <button class="button">Edit</button>
+                </td>
+              </tr>
+              <tr>
+                <td>Partner Expo</td>
+                <td>EV-2026-03</td>
+                <td>Alliances</td>
+                <td><span class="badge">Tier 2</span></td>
+                <td class="table-actions">
+                  <button class="button secondary">View</button>
+                  <button class="button">Edit</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="panel">
+          <h3>Event Intake</h3>
+          <form class="form">
+            <div class="form-row">
+              <div>
+                <label>Event Name</label>
+                <input type="text" placeholder="New event" />
+              </div>
+              <div>
+                <label>Event Code</label>
+                <input type="text" placeholder="EV-2026-04" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div>
+                <label>Owner Team</label>
+                <select>
+                  <option>Operations</option>
+                  <option>Marketing</option>
+                  <option>Alliances</option>
+                </select>
+              </div>
+              <div>
+                <label>Priority</label>
+                <select>
+                  <option>Tier 1</option>
+                  <option>Tier 2</option>
+                  <option>Tier 3</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label>Notes</label>
+              <textarea placeholder="Add context"></textarea>
+            </div>
+            <button class="button" type="button">Save Event</button>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" data-modal>
+      <div class="modal">
+        <div class="modal-header">
+          <h4>New Event</h4>
+          <button class="button secondary" data-modal-close>Close</button>
+        </div>
+        <form class="form">
+          <div>
+            <label>Event Name</label>
+            <input type="text" placeholder="New event" />
+          </div>
+          <div class="form-row">
+            <div>
+              <label>Code</label>
+              <input type="text" placeholder="EV-2026-05" />
+            </div>
+            <div>
+              <label>Owner</label>
+              <select>
+                <option>Operations</option>
+                <option>Marketing</option>
+                <option>Alliances</option>
+              </select>
+            </div>
+          </div>
+          <button class="button" type="button">Create Event</button>
+        </form>
+      </div>
+    </div>
+
+    <script src="../assets/app.js"></script>
+  </body>
+</html>

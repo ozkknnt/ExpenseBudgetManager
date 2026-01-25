@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Budget Manager - Budgets</title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">EB</div>
+          <div>
+            <h1>Expense Budget</h1>
+            <div class="tag-row">
+              <span class="tag">FY 2026</span>
+              <span class="tag">Admin</span>
+            </div>
+          </div>
+        </div>
+        <nav>
+          <div class="nav-section">Core</div>
+          <a class="nav-item" href="../index.html">Overview</a>
+          <a class="nav-item" href="events.html">Events</a>
+          <a class="nav-item active" href="budgets.html">Budgets</a>
+          <a class="nav-item" href="actuals.html">Actuals</a>
+          <div class="nav-section">Admin</div>
+          <a class="nav-item" href="settings.html">Settings</a>
+        </nav>
+        <div class="sidebar-footer">
+          FY 2026 budget items: 44<br />
+          12 items flagged for review.
+        </div>
+      </aside>
+      <main class="content">
+        <header class="header">
+          <div class="header-title">
+            <h2>Budgets</h2>
+            <p>Plan allocations by category and month.</p>
+          </div>
+          <div class="header-actions">
+            <input class="input-chip" type="search" placeholder="Search items" />
+            <button class="button secondary" data-theme-toggle>Dark</button>
+            <button class="button" data-modal-open>Add Budget</button>
+          </div>
+        </header>
+
+        <section class="panel">
+          <h3>Budget Items</h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Event</th>
+                <th>Annual</th>
+                <th>Monthly</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Venue Rental</td>
+                <td>Global Summit</td>
+                <td>$620K</td>
+                <td>$52K</td>
+                <td><span class="badge">Approved</span></td>
+              </tr>
+              <tr>
+                <td>Speaker Travel</td>
+                <td>Global Summit</td>
+                <td>$120K</td>
+                <td>$10K</td>
+                <td><span class="badge">Draft</span></td>
+              </tr>
+              <tr>
+                <td>Roadshow Logistics</td>
+                <td>Product Roadshow</td>
+                <td>$240K</td>
+                <td>$20K</td>
+                <td><span class="badge">Review</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="panel">
+          <h3>Budget Builder</h3>
+          <form class="form">
+            <div class="form-row">
+              <div>
+                <label>Budget Code</label>
+                <input type="text" placeholder="EB-2026-021" />
+              </div>
+              <div>
+                <label>Event</label>
+                <select>
+                  <option>Global Summit</option>
+                  <option>Product Roadshow</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div>
+                <label>Category</label>
+                <select>
+                  <option>Venue</option>
+                  <option>Travel</option>
+                  <option>Marketing</option>
+                </select>
+              </div>
+              <div>
+                <label>Annual Amount</label>
+                <input type="text" placeholder="$0" />
+              </div>
+            </div>
+            <div>
+              <label>Notes</label>
+              <textarea placeholder="Add assumptions"></textarea>
+            </div>
+            <button class="button" type="button">Save Draft</button>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" data-modal>
+      <div class="modal">
+        <div class="modal-header">
+          <h4>Add Budget Item</h4>
+          <button class="button secondary" data-modal-close>Close</button>
+        </div>
+        <form class="form">
+          <div>
+            <label>Item Name</label>
+            <input type="text" placeholder="Event production" />
+          </div>
+          <div class="form-row">
+            <div>
+              <label>Event</label>
+              <select>
+                <option>Global Summit</option>
+                <option>Product Roadshow</option>
+              </select>
+            </div>
+            <div>
+              <label>Category</label>
+              <select>
+                <option>Production</option>
+                <option>Travel</option>
+              </select>
+            </div>
+          </div>
+          <button class="button" type="button">Add Item</button>
+        </form>
+      </div>
+    </div>
+
+    <script src="../assets/app.js"></script>
+  </body>
+</html>
