@@ -1,0 +1,13 @@
+{
+  "name": "expense-budget-manager",
+  "private": true,
+  "packageManager": "pnpm@8.15.4",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "db:up": "docker compose -f infra/docker-compose.yml up -d",
+    "db:down": "docker compose -f infra/docker-compose.yml down",
+    "db:migrate": "pnpm --filter db migrate",
+    "db:seed": "pnpm --filter db seed",
+    "lint": "pnpm -r lint"
+  }
+}
