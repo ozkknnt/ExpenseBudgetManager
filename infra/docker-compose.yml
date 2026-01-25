@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: expense-budget-manager-postgres
+    environment:
+      POSTGRES_DB: expense_budget_manager
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+volumes:
+  postgres_data:

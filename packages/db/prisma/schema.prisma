@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model MstEvent {
+  eventId    String  @id @db.Uuid @default(dbgenerated("gen_random_uuid()")) @map("event_id")
+  eventCode  String  @unique @map("event_code")
+  eventName  String  @map("event_name")
+  eventOrder Int     @map("event_order")
+  createDate DateTime @default(now()) @map("create_date")
+  updateDate DateTime @updatedAt @map("update_date")
+  delFlg     Boolean @default(false) @map("del_flg")
+
+  budgetItems MstBudgetItem[]
+
+  @@map("mst_event")
+}
+
+model MstExpenseCategory {
+  expenseCategoryId   String  @id @db.Uuid @default(dbgenerated("gen_random_uuid()")) @map("expense_category_id")
+  expenseCategoryCode String  @unique @map("expense_category_code")
+  expenseCategoryName String  @map("expense_category_name")
+  createDate DateTime @default(now()) @map("create_date")
+  updateDate DateTime @updatedAt @map("update_date")
+  delFlg     Boolean @default(false) @map("del_flg")
+
+  budgetItems MstBudgetItem[]
+
+  @@map("mst_expense_category")
+}
+
+model MstBudgetItem {
+  budgetItemId        String  @id @db.Uuid @default(dbgenerated("gen_random_uuid()")) @map("budget_item_id")
+  fiscalYear          Int     @map("fiscal_year")
+  eventId             String  @db.Uuid @map("event_id")
+  expenseCategoryId   String  @db.Uuid @map("expense_category_id")
+  budgetItemCode      String  @map("budget_item_code")
+  budgetItemName      String  @map("budget_item_name")
+  createDate DateTime @default(now()) @map("create_date")
+  updateDate DateTime @updatedAt @map("update_date")
+  delFlg     Boolean @default(false) @map("del_flg")
+
+  event            MstEvent           @relation(fields: [eventId], references: [eventId])
+  expenseCategory  MstExpenseCategory @relation(fields: [expenseCategoryId], references: [expenseCategoryId])
+  budgetMonthly    TrBudgetMonthly[]
+  actualMonthly    TrActualMonthly[]
+
+  @@unique([fiscalYear, eventId, expenseCategoryId, budgetItemCode], map: "uniq_budget_item")
+  @@map("mst_budget_item")
+}
+
+model TrBudgetMonthly {
+  budgetMonthlyId String  @id @db.Uuid @default(dbgenerated("gen_random_uuid()")) @map("budget_monthly_id")
+  budgetItemId    String  @db.Uuid @map("budget_item_id")
+  fiscalMonth     Int     @map("fiscal_month")
+  budgetAmount    Decimal @db.Decimal(15, 2) @map("budget_amount")
+  createDate DateTime @default(now()) @map("create_date")
+  updateDate DateTime @updatedAt @map("update_date")
+  delFlg     Boolean @default(false) @map("del_flg")
+
+  budgetItem MstBudgetItem @relation(fields: [budgetItemId], references: [budgetItemId])
+
+  @@unique([budgetItemId, fiscalMonth], map: "uniq_budget_monthly")
+  @@map("tr_budget_monthly")
+}
+
+model TrActualMonthly {
+  actualMonthlyId String  @id @db.Uuid @default(dbgenerated("gen_random_uuid()")) @map("actual_monthly_id")
+  budgetItemId    String  @db.Uuid @map("budget_item_id")
+  fiscalMonth     Int     @map("fiscal_month")
+  actualAmount    Decimal @db.Decimal(15, 2) @map("actual_amount")
+  status          String  @map("status")
+  finalizedDate   DateTime? @map("finalized_date")
+  createDate DateTime @default(now()) @map("create_date")
+  updateDate DateTime @updatedAt @map("update_date")
+  delFlg     Boolean @default(false) @map("del_flg")
+
+  budgetItem MstBudgetItem @relation(fields: [budgetItemId], references: [budgetItemId])
+
+  @@unique([budgetItemId, fiscalMonth], map: "uniq_actual_monthly")
+  @@map("tr_actual_monthly")
+}
