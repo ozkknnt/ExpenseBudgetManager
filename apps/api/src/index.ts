@@ -11,15 +11,20 @@ app.get('/health', async (c) => {
 });
 
 app.get('/events', async (c) => {
-  const events = await prisma.mst_event.findMany({
-    where: { delFlg: false },
-    orderBy: { eventOrder: 'asc' }
-  });
-  return c.json(events);
+  try {
+    const events = await prisma.mstEvent.findMany({
+      where: { delFlg: false },
+      orderBy: { eventOrder: 'asc' }
+    });
+    return c.json(events);
+  } catch (error) {
+    console.error(error);
+    return c.json({ message: 'internal server error' }, 500);
+  }
 });
 
 app.get('/expense-categories', async (c) => {
-  const categories = await prisma.mst_expense_category.findMany({
+  const categories = await prisma.mstExpenseCategory.findMany({
     where: { delFlg: false },
     orderBy: { expenseCategoryCode: 'asc' }
   });
@@ -32,7 +37,7 @@ app.post('/expense-categories', async (c) => {
     return c.json({ message: 'expenseCategoryCode and expenseCategoryName are required' }, 400);
   }
 
-  const existing = await prisma.mst_expense_category.findFirst({
+  const existing = await prisma.mstExpenseCategory.findFirst({
     where: { expenseCategoryCode: body.expenseCategoryCode }
   });
 
@@ -40,7 +45,7 @@ app.post('/expense-categories', async (c) => {
     return c.json({ message: 'expense_category_code already exists' }, 409);
   }
 
-  const created = await prisma.mst_expense_category.create({
+  const created = await prisma.mstExpenseCategory.create({
     data: {
       expenseCategoryCode: body.expenseCategoryCode,
       expenseCategoryName: body.expenseCategoryName
@@ -58,7 +63,7 @@ app.put('/expense-categories/:id', async (c) => {
     return c.json({ message: 'expenseCategoryCode or expenseCategoryName is required' }, 400);
   }
 
-  const target = await prisma.mst_expense_category.findFirst({
+  const target = await prisma.mstExpenseCategory.findFirst({
     where: { expenseCategoryId: id, delFlg: false }
   });
 
@@ -67,7 +72,7 @@ app.put('/expense-categories/:id', async (c) => {
   }
 
   if (body?.expenseCategoryCode) {
-    const duplicate = await prisma.mst_expense_category.findFirst({
+    const duplicate = await prisma.mstExpenseCategory.findFirst({
       where: {
         expenseCategoryCode: body.expenseCategoryCode,
         expenseCategoryId: { not: id }
@@ -79,7 +84,7 @@ app.put('/expense-categories/:id', async (c) => {
     }
   }
 
-  const updated = await prisma.mst_expense_category.update({
+  const updated = await prisma.mstExpenseCategory.update({
     where: { expenseCategoryId: id },
     data: {
       expenseCategoryCode: body.expenseCategoryCode ?? undefined,
@@ -93,7 +98,7 @@ app.put('/expense-categories/:id', async (c) => {
 app.delete('/expense-categories/:id', async (c) => {
   const id = c.req.param('id');
 
-  const target = await prisma.mst_expense_category.findFirst({
+  const target = await prisma.mstExpenseCategory.findFirst({
     where: { expenseCategoryId: id, delFlg: false }
   });
 
@@ -101,7 +106,7 @@ app.delete('/expense-categories/:id', async (c) => {
     return c.json({ message: 'expense category not found' }, 404);
   }
 
-  const deleted = await prisma.mst_expense_category.update({
+  const deleted = await prisma.mstExpenseCategory.update({
     where: { expenseCategoryId: id },
     data: { delFlg: true }
   });
