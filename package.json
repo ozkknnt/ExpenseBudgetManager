@@ -8,10 +8,8 @@
     "db:down": "docker compose -f infra/docker-compose.yml down",
     "db:migrate": "pnpm --filter db migrate",
     "db:seed": "pnpm --filter db seed",
-    "lint": "pnpm -r lint",
-    "migrate": "prisma migrate dev",
-    "seed": "prisma db seed",
-    "generate": "prisma generate",
-    "studio": "prisma studio"
+    "db:generate": "pnpm --filter db generate",
+    "db:studio": "pnpm --filter db exec prisma studio",
+    "lint": "pnpm -r lint"
   }
 }

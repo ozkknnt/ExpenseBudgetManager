@@ -18,7 +18,7 @@ body {
 }
 
 .card {
-  width: min(680px, 100%);
+  width: min(960px, 100%);
   background: #fff;
   padding: 32px;
   border-radius: 16px;
@@ -35,29 +35,346 @@ body {
   margin-bottom: 16px;
 }
 
+h1 {
+  margin: 0;
+}
+
+h2 {
+  margin: 24px 0 12px;
+  font-size: 20px;
+}
+
 .sub {
   color: #555;
   margin-top: 4px;
 }
 
-.list {
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+  margin: 16px 0;
+}
+
+.controls label,
+.createForm label {
+  display: grid;
+  gap: 6px;
+}
+
+.controls span,
+.createForm span {
+  font-size: 12px;
+  color: #555;
+}
+
+.controls input,
+.controls select,
+.controls button,
+.createForm input,
+.createForm select,
+.createForm button,
+.inlineForm select,
+.inlineForm input,
+.inlineForm button,
+.toggleFinalize {
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid #d6d9e0;
+  padding: 0 10px;
+  font: inherit;
+}
+
+.controls button,
+.createForm button,
+.inlineForm button,
+.toggleFinalize {
+  cursor: pointer;
+  background: #1b73e8;
+  color: #fff;
+  border-color: #1b73e8;
+  font-weight: 600;
+}
+
+.createForm {
+  display: grid;
+  grid-template-columns: 2fr 1fr 2fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.notice {
+  margin: 8px 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.notice.success {
+  background: #e7f8ee;
+  color: #0a6f3b;
+}
+
+.notice.error {
+  background: #fdebec;
+  color: #9b1c21;
+}
+
+.chartList {
   list-style: none;
   padding: 0;
   margin: 16px 0 0;
+  display: grid;
+  gap: 12px;
 }
 
-.list li {
-  display: flex;
-  gap: 12px;
-  padding: 8px 0;
-  border-bottom: 1px solid #eee;
+.chartMeta {
+  display: grid;
+  grid-template-columns: 90px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 6px;
 }
 
 .code {
   font-weight: 700;
-  min-width: 60px;
+}
+
+.amount {
+  font-weight: 700;
+}
+
+.barTrack {
+  width: 100%;
+  height: 14px;
+  border-radius: 999px;
+  background: #edf2fb;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #1b73e8, #4cb1ff);
+}
+
+.divider {
+  margin: 28px 0;
+  border: none;
+  border-top: 1px solid #e8ecf3;
+}
+
+.itemList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.itemCard {
+  border: 1px solid #e0e6f0;
+  border-radius: 12px;
+  padding: 14px;
+  background: #fafcff;
+}
+
+.itemHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.itemCode {
+  margin: 0;
+  font-weight: 700;
+}
+
+.itemName,
+.itemMeta {
+  margin: 2px 0 0;
+}
+
+.itemMeta {
+  color: #666;
+  font-size: 13px;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status.draft {
+  background: #eef3ff;
+  color: #2d5dd8;
+}
+
+.status.finalized {
+  background: #e7f8ee;
+  color: #0a6f3b;
+}
+
+.inlineForms {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.inlineForm {
+  display: grid;
+  grid-template-columns: 44px 90px 1fr 90px;
+  gap: 8px;
+  align-items: center;
+}
+
+.inlineForm span {
+  font-size: 12px;
+  color: #555;
+}
+
+.toggleFinalize {
+  width: 140px;
 }
 
 .muted {
   color: #888;
+}
+
+@media (max-width: 800px) {
+  .controls,
+  .createForm {
+    grid-template-columns: 1fr;
+  }
+
+  .chartMeta,
+  .inlineForm {
+    grid-template-columns: 1fr;
+  }
+
+  .toggleFinalize {
+    width: 100%;
+  }
+}
+
+.monthGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.monthCell {
+  background: #f3f7ff;
+  border: 1px solid #dce6fb;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.monthLabel {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #2a426d;
+}
+
+.monthBudget,
+.monthActual {
+  margin: 0;
+  font-size: 12px;
+  color: #455a7f;
+}
+
+@media (max-width: 980px) {
+  .monthGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .monthGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.matrixForm {
+  margin-bottom: 12px;
+}
+
+.matrixTitle {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #30486f;
+}
+
+.matrixScroll {
+  overflow-x: auto;
+}
+
+.matrixTable {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.matrixTable th,
+.matrixTable td {
+  border: 1px solid #dce6fb;
+  padding: 6px;
+  text-align: center;
+}
+
+.matrixTable th {
+  background: #f0f5ff;
+  font-size: 12px;
+  color: #2a426d;
+}
+
+.matrixTable input {
+  width: 100%;
+  min-width: 72px;
+  height: 34px;
+  border: 1px solid #d6d9e0;
+  border-radius: 6px;
+  text-align: right;
+  padding: 0 8px;
+}
+
+.matrixFieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.matrixFieldset:disabled {
+  opacity: 0.65;
+}
+
+.tableSave {
+  margin-top: 8px;
+  width: 180px;
+}
+
+.matrixTotalRow td {
+  background: #eef4ff;
+  font-weight: 700;
+}
+
+.matrixTotalLabel {
+  text-align: right;
+  color: #2a426d;
+}
+
+.matrixTotalValue {
+  color: #153a80;
 }
