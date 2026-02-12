@@ -378,3 +378,108 @@ h2 {
 .matrixTotalValue {
   color: #153a80;
 }
+
+.categoryCreateForm {
+  grid-template-columns: 1fr 2fr auto;
+}
+
+.categoryList {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: grid;
+  gap: 8px;
+}
+
+.categoryRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.categoryEditForm {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 2fr auto;
+  gap: 8px;
+}
+
+.categoryEditForm input,
+.categoryEditForm button {
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid #d6d9e0;
+  padding: 0 10px;
+  font: inherit;
+}
+
+.categoryEditForm button {
+  cursor: pointer;
+  background: #1b73e8;
+  color: #fff;
+  border-color: #1b73e8;
+  font-weight: 600;
+}
+
+.dangerButton {
+  height: 38px;
+  min-width: 64px;
+  border-radius: 8px;
+  border: 1px solid #cf3d3d;
+  background: #cf3d3d;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 800px) {
+  .categoryCreateForm,
+  .categoryEditForm,
+  .categoryRow {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+}
+
+.budgetItemActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.budgetItemEditForm {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr auto;
+  gap: 8px;
+}
+
+.budgetItemEditForm input,
+.budgetItemEditForm select,
+.budgetItemEditForm button {
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid #d6d9e0;
+  padding: 0 10px;
+  font: inherit;
+}
+
+.budgetItemEditForm button {
+  cursor: pointer;
+  background: #1b73e8;
+  color: #fff;
+  border-color: #1b73e8;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .budgetItemActions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .budgetItemEditForm {
+    grid-template-columns: 1fr;
+  }
+}

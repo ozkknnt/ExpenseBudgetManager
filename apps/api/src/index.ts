@@ -49,6 +49,106 @@ app.get('/expense-categories', async (c) => {
   return c.json(categories);
 });
 
+app.post('/expense-categories', async (c) => {
+  const body = await c.req.json().catch(() => null);
+  if (!isNonEmptyString(body?.expenseCategoryCode) || !isNonEmptyString(body?.expenseCategoryName)) {
+    return c.json({ message: 'expenseCategoryCode and expenseCategoryName are required' }, 400);
+  }
+
+  try {
+    const created = await prisma.mstExpenseCategory.create({
+      data: {
+        expenseCategoryCode: body.expenseCategoryCode,
+        expenseCategoryName: body.expenseCategoryName
+      }
+    });
+
+    return c.json(created, 201);
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      return c.json({ message: 'expense category code already exists' }, 409);
+    }
+    console.error('POST /expense-categories failed:', error);
+    return c.json({ message: 'internal server error' }, 500);
+  }
+});
+
+app.put('/expense-categories/:expenseCategoryId', async (c) => {
+  const expenseCategoryId = c.req.param('expenseCategoryId');
+  if (!UUID_REGEX.test(expenseCategoryId)) {
+    return c.json({ message: 'expenseCategoryId must be valid uuid' }, 400);
+  }
+
+  const body = await c.req.json().catch(() => null);
+  const hasAnyField =
+    body !== null &&
+    (body.expenseCategoryCode !== undefined || body.expenseCategoryName !== undefined);
+
+  if (!hasAnyField) {
+    return c.json({ message: 'expenseCategoryCode or expenseCategoryName is required' }, 400);
+  }
+
+  if (body.expenseCategoryCode !== undefined && !isNonEmptyString(body.expenseCategoryCode)) {
+    return c.json({ message: 'expenseCategoryCode must be non-empty string' }, 400);
+  }
+
+  if (body.expenseCategoryName !== undefined && !isNonEmptyString(body.expenseCategoryName)) {
+    return c.json({ message: 'expenseCategoryName must be non-empty string' }, 400);
+  }
+
+  try {
+    const target = await prisma.mstExpenseCategory.findFirst({
+      where: { expenseCategoryId, delFlg: false }
+    });
+
+    if (!target) {
+      return c.json({ message: 'expense category not found' }, 404);
+    }
+
+    const updated = await prisma.mstExpenseCategory.update({
+      where: { expenseCategoryId },
+      data: {
+        expenseCategoryCode: body.expenseCategoryCode ?? undefined,
+        expenseCategoryName: body.expenseCategoryName ?? undefined
+      }
+    });
+
+    return c.json(updated);
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      return c.json({ message: 'expense category code already exists' }, 409);
+    }
+    console.error('PUT /expense-categories/:expenseCategoryId failed:', error);
+    return c.json({ message: 'internal server error' }, 500);
+  }
+});
+
+app.delete('/expense-categories/:expenseCategoryId', async (c) => {
+  const expenseCategoryId = c.req.param('expenseCategoryId');
+  if (!UUID_REGEX.test(expenseCategoryId)) {
+    return c.json({ message: 'expenseCategoryId must be valid uuid' }, 400);
+  }
+
+  try {
+    const target = await prisma.mstExpenseCategory.findFirst({
+      where: { expenseCategoryId, delFlg: false }
+    });
+
+    if (!target) {
+      return c.json({ message: 'expense category not found' }, 404);
+    }
+
+    const deleted = await prisma.mstExpenseCategory.update({
+      where: { expenseCategoryId },
+      data: { delFlg: true }
+    });
+
+    return c.json(deleted);
+  } catch (error) {
+    console.error('DELETE /expense-categories/:expenseCategoryId failed:', error);
+    return c.json({ message: 'internal server error' }, 500);
+  }
+});
 app.get('/budget-items', async (c) => {
   const fiscalYear = parseFiscalYear(c.req.query('fiscalYear'));
   if (fiscalYear === null) {

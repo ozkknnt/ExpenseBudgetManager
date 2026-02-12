@@ -162,6 +162,89 @@ function formatYen(amount: number) {
   return new Intl.NumberFormat('ja-JP').format(amount);
 }
 
+async function createExpenseCategoryAction(formData: FormData) {
+  'use server';
+
+  const fiscalYear = Number(formData.get('fiscalYear'));
+  const eventCode = String(formData.get('eventCode') ?? '');
+  const expenseCategoryCode = String(formData.get('expenseCategoryCode') ?? '').trim();
+  const expenseCategoryName = String(formData.get('expenseCategoryName') ?? '').trim();
+
+  if (!expenseCategoryCode || !expenseCategoryName) {
+    redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '費目コードと費目名は必須です' })}`);
+  }
+
+  const res = await callApi('/expense-categories', {
+    method: 'POST',
+    body: JSON.stringify({
+      expenseCategoryCode,
+      expenseCategoryName
+    })
+  });
+
+  if (!res.ok) {
+    const message = res.status === 409 ? '費目コードが重複しています' : '費目の作成に失敗しました';
+    redirect(`/?${buildQuery({ fiscalYear, eventCode, error: message })}`);
+  }
+
+  revalidatePath('/');
+  redirect(`/?${buildQuery({ fiscalYear, eventCode, message: '費目を作成しました' })}`);
+}
+
+async function updateExpenseCategoryAction(formData: FormData) {
+  'use server';
+
+  const fiscalYear = Number(formData.get('fiscalYear'));
+  const eventCode = String(formData.get('eventCode') ?? '');
+  const expenseCategoryId = String(formData.get('expenseCategoryId') ?? '');
+  const expenseCategoryCode = String(formData.get('expenseCategoryCode') ?? '').trim();
+  const expenseCategoryName = String(formData.get('expenseCategoryName') ?? '').trim();
+
+  if (!expenseCategoryId || !expenseCategoryCode || !expenseCategoryName) {
+    redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '費目更新の入力が不足しています' })}`);
+  }
+
+  const res = await callApi(`/expense-categories/${expenseCategoryId}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      expenseCategoryCode,
+      expenseCategoryName
+    })
+  });
+
+  if (!res.ok) {
+    const message = res.status === 409 ? '費目コードが重複しています' : '費目の更新に失敗しました';
+    redirect(`/?${buildQuery({ fiscalYear, eventCode, error: message })}`);
+  }
+
+  revalidatePath('/');
+  redirect(`/?${buildQuery({ fiscalYear, eventCode, message: '費目を更新しました' })}`);
+}
+
+async function deleteExpenseCategoryAction(formData: FormData) {
+  'use server';
+
+  const fiscalYear = Number(formData.get('fiscalYear'));
+  const eventCode = String(formData.get('eventCode') ?? '');
+  const expenseCategoryId = String(formData.get('expenseCategoryId') ?? '');
+
+  if (!expenseCategoryId) {
+    redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '費目IDが不正です' })}`);
+  }
+
+  const res = await callApi(`/expense-categories/${expenseCategoryId}`, {
+    method: 'DELETE',
+    body: JSON.stringify({})
+  });
+
+  if (!res.ok) {
+    redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '費目の削除に失敗しました' })}`);
+  }
+
+  revalidatePath('/');
+  redirect(`/?${buildQuery({ fiscalYear, eventCode, message: '費目を削除しました' })}`);
+}
+
 async function createBudgetItemAction(formData: FormData) {
   'use server';
 
@@ -203,6 +286,62 @@ async function createBudgetItemAction(formData: FormData) {
   redirect(`/?${buildQuery({ fiscalYear, eventCode, message: '予算項目を作成しました' })}`);
 }
 
+
+async function updateBudgetItemAction(formData: FormData) {
+  'use server';
+
+  const budgetItemId = String(formData.get('budgetItemId') ?? '');
+  const fiscalYear = Number(formData.get('fiscalYear'));
+  const eventCode = String(formData.get('eventCode') ?? '');
+  const expenseCategoryId = String(formData.get('expenseCategoryId') ?? '');
+  const budgetItemCode = String(formData.get('budgetItemCode') ?? '').trim();
+  const budgetItemName = String(formData.get('budgetItemName') ?? '').trim();
+
+  if (!budgetItemId || !expenseCategoryId || !budgetItemCode || !budgetItemName) {
+    redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '予算項目更新の入力が不足しています' })}`);
+  }
+
+  const res = await callApi(`/budget-items/${budgetItemId}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      expenseCategoryId,
+      budgetItemCode,
+      budgetItemName
+    })
+  });
+
+  if (!res.ok) {
+    const message = res.status === 409 ? '重複する予算項目コードです' : '予算項目の更新に失敗しました';
+    redirect(`/?${buildQuery({ fiscalYear, eventCode, error: message })}`);
+  }
+
+  revalidatePath('/');
+  redirect(`/?${buildQuery({ fiscalYear, eventCode, message: '予算項目を更新しました' })}`);
+}
+
+async function deleteBudgetItemAction(formData: FormData) {
+  'use server';
+
+  const budgetItemId = String(formData.get('budgetItemId') ?? '');
+  const fiscalYear = Number(formData.get('fiscalYear'));
+  const eventCode = String(formData.get('eventCode') ?? '');
+
+  if (!budgetItemId) {
+    redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '予算項目IDが不正です' })}`);
+  }
+
+  const res = await callApi(`/budget-items/${budgetItemId}`, {
+    method: 'DELETE',
+    body: JSON.stringify({})
+  });
+
+  if (!res.ok) {
+    redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '予算項目の削除に失敗しました' })}`);
+  }
+
+  revalidatePath('/');
+  redirect(`/?${buildQuery({ fiscalYear, eventCode, message: '予算項目を削除しました' })}`);
+}
 async function upsertBudgetTableAction(formData: FormData) {
   'use server';
 
@@ -383,6 +522,48 @@ export default async function Home({ searchParams }: HomeProps) {
 
         <hr className="divider" />
 
+        <h2>費目マスタメンテ</h2>
+        <form className="createForm categoryCreateForm" action={createExpenseCategoryAction}>
+          <input type="hidden" name="fiscalYear" value={String(fiscalYear)} />
+          <input type="hidden" name="eventCode" value={selectedEventCode} />
+
+          <label>
+            <span>費目コード</span>
+            <input name="expenseCategoryCode" required maxLength={50} />
+          </label>
+
+          <label>
+            <span>費目名</span>
+            <input name="expenseCategoryName" required maxLength={100} />
+          </label>
+
+          <button type="submit">費目追加</button>
+        </form>
+
+        <ul className="categoryList">
+          {categories.map((category) => (
+            <li key={category.expenseCategoryId} className="categoryRow">
+              <form className="categoryEditForm" action={updateExpenseCategoryAction}>
+                <input type="hidden" name="fiscalYear" value={String(fiscalYear)} />
+                <input type="hidden" name="eventCode" value={selectedEventCode} />
+                <input type="hidden" name="expenseCategoryId" value={category.expenseCategoryId} />
+                <input name="expenseCategoryCode" defaultValue={category.expenseCategoryCode} required />
+                <input name="expenseCategoryName" defaultValue={category.expenseCategoryName} required />
+                <button type="submit">更新</button>
+              </form>
+
+              <form action={deleteExpenseCategoryAction}>
+                <input type="hidden" name="fiscalYear" value={String(fiscalYear)} />
+                <input type="hidden" name="eventCode" value={selectedEventCode} />
+                <input type="hidden" name="expenseCategoryId" value={category.expenseCategoryId} />
+                <button type="submit" className="dangerButton">削除</button>
+              </form>
+            </li>
+          ))}
+        </ul>
+
+        <hr className="divider" />
+
         <h2>予算項目を追加</h2>
         <form className="createForm" action={createBudgetItemAction}>
           <input type="hidden" name="fiscalYear" value={String(fiscalYear)} />
@@ -438,6 +619,34 @@ export default async function Home({ searchParams }: HomeProps) {
                     <span className={item.actualFinalizedFlg ? 'status finalized' : 'status draft'}>
                       {item.actualFinalizedFlg ? '確定済み' : '未確定'}
                     </span>
+                  </div>
+
+
+                  <div className="budgetItemActions">
+                    <form className="budgetItemEditForm" action={updateBudgetItemAction}>
+                      <input type="hidden" name="budgetItemId" value={item.budgetItemId} />
+                      <input type="hidden" name="fiscalYear" value={String(fiscalYear)} />
+                      <input type="hidden" name="eventCode" value={selectedEventCode} />
+
+                      <select name="expenseCategoryId" defaultValue={item.expenseCategory.expenseCategoryId}>
+                        {categories.map((category) => (
+                          <option key={category.expenseCategoryId} value={category.expenseCategoryId}>
+                            {category.expenseCategoryCode}
+                          </option>
+                        ))}
+                      </select>
+
+                      <input name="budgetItemCode" defaultValue={item.budgetItemCode} required />
+                      <input name="budgetItemName" defaultValue={item.budgetItemName} required />
+                      <button type="submit">項目更新</button>
+                    </form>
+
+                    <form action={deleteBudgetItemAction}>
+                      <input type="hidden" name="budgetItemId" value={item.budgetItemId} />
+                      <input type="hidden" name="fiscalYear" value={String(fiscalYear)} />
+                      <input type="hidden" name="eventCode" value={selectedEventCode} />
+                      <button type="submit" className="dangerButton">項目削除</button>
+                    </form>
                   </div>
 
                   <form action={upsertBudgetTableAction} className="matrixForm">
