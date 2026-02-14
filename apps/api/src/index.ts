@@ -742,6 +742,194 @@ app.post('/budget-items/:budgetItemId/unfinalize-actual', async (c) => {
 });
 
 
+app.post('/budget-items/copy', async (c) => {
+  const body = await c.req.json().catch(() => null);
+
+  const fromFiscalYear = body?.fromFiscalYear;
+  const toFiscalYear = body?.toFiscalYear;
+  const fromEventCode = normalizeString(body?.fromEventCode);
+  const toEventCode = normalizeString(body?.toEventCode);
+
+  if (
+    !isValidFiscalYear(fromFiscalYear) ||
+    !isValidFiscalYear(toFiscalYear) ||
+    !isValidCode(fromEventCode) ||
+    !isValidCode(toEventCode)
+  ) {
+    return c.json(
+      {
+        message:
+          'fromFiscalYear/toFiscalYear(2000-2100) and fromEventCode/toEventCode(<=50) are required'
+      },
+      400
+    );
+  }
+
+  if (fromFiscalYear === toFiscalYear && fromEventCode === toEventCode) {
+    return c.json({ message: 'copy source and destination must be different' }, 400);
+  }
+
+  try {
+    const [fromEvent, toEvent] = await Promise.all([
+      prisma.mstEvent.findFirst({
+        where: {
+          eventCode: fromEventCode,
+          delFlg: false
+        }
+      }),
+      prisma.mstEvent.findFirst({
+        where: {
+          eventCode: toEventCode,
+          delFlg: false
+        }
+      })
+    ]);
+
+    if (!fromEvent) {
+      return c.json({ message: 'source event not found' }, 404);
+    }
+
+    if (!toEvent) {
+      return c.json({ message: 'destination event not found' }, 404);
+    }
+
+    const sourceItems = await prisma.mstBudgetItem.findMany({
+      where: {
+        fiscalYear: fromFiscalYear,
+        eventId: fromEvent.eventId,
+        delFlg: false,
+        expenseCategory: {
+          is: {
+            delFlg: false
+          }
+        }
+      },
+      include: {
+        budgetMonthlies: {
+          where: { delFlg: false },
+          select: {
+            fiscalMonth: true,
+            budgetAmount: true
+          }
+        },
+        actualMonthlies: {
+          where: { delFlg: false },
+          select: {
+            fiscalMonth: true,
+            actualAmount: true
+          }
+        }
+      }
+    });
+
+    let copiedItemCount = 0;
+    let copiedBudgetRowCount = 0;
+    let copiedActualRowCount = 0;
+
+    await prisma.$transaction(async (tx) => {
+      for (const sourceItem of sourceItems) {
+        const existingTargetItem = await tx.mstBudgetItem.findFirst({
+          where: {
+            fiscalYear: toFiscalYear,
+            eventId: toEvent.eventId,
+            expenseCategoryId: sourceItem.expenseCategoryId,
+            budgetItemCode: sourceItem.budgetItemCode
+          }
+        });
+
+        const targetItem = existingTargetItem
+          ? await tx.mstBudgetItem.update({
+              where: { budgetItemId: existingTargetItem.budgetItemId },
+              data: {
+                budgetItemName: sourceItem.budgetItemName,
+                delFlg: false,
+                actualFinalizedFlg: false,
+                actualFinalizedDate: null
+              }
+            })
+          : await tx.mstBudgetItem.create({
+              data: {
+                fiscalYear: toFiscalYear,
+                eventId: toEvent.eventId,
+                expenseCategoryId: sourceItem.expenseCategoryId,
+                budgetItemCode: sourceItem.budgetItemCode,
+                budgetItemName: sourceItem.budgetItemName,
+                actualFinalizedFlg: false,
+                actualFinalizedDate: null
+              }
+            });
+
+        copiedItemCount += 1;
+
+        await tx.trBudgetMonthly.updateMany({
+          where: { budgetItemId: targetItem.budgetItemId },
+          data: { delFlg: true }
+        });
+        await tx.trActualMonthly.updateMany({
+          where: { budgetItemId: targetItem.budgetItemId },
+          data: { delFlg: true }
+        });
+
+        for (const month of sourceItem.budgetMonthlies) {
+          await tx.trBudgetMonthly.upsert({
+            where: {
+              budgetItemId_fiscalMonth: {
+                budgetItemId: targetItem.budgetItemId,
+                fiscalMonth: month.fiscalMonth
+              }
+            },
+            update: {
+              budgetAmount: month.budgetAmount,
+              delFlg: false
+            },
+            create: {
+              budgetItemId: targetItem.budgetItemId,
+              fiscalMonth: month.fiscalMonth,
+              budgetAmount: month.budgetAmount
+            }
+          });
+        }
+
+        for (const month of sourceItem.actualMonthlies) {
+          await tx.trActualMonthly.upsert({
+            where: {
+              budgetItemId_fiscalMonth: {
+                budgetItemId: targetItem.budgetItemId,
+                fiscalMonth: month.fiscalMonth
+              }
+            },
+            update: {
+              actualAmount: month.actualAmount,
+              delFlg: false
+            },
+            create: {
+              budgetItemId: targetItem.budgetItemId,
+              fiscalMonth: month.fiscalMonth,
+              actualAmount: month.actualAmount
+            }
+          });
+        }
+
+        copiedBudgetRowCount += sourceItem.budgetMonthlies.length;
+        copiedActualRowCount += sourceItem.actualMonthlies.length;
+      }
+    });
+
+    return c.json({
+      fromFiscalYear,
+      fromEventCode,
+      toFiscalYear,
+      toEventCode,
+      copiedItemCount,
+      copiedBudgetRowCount,
+      copiedActualRowCount
+    });
+  } catch (error) {
+    console.error('POST /budget-items/copy failed:', error);
+    return c.json({ message: 'internal server error' }, 500);
+  }
+});
+
 app.get('/reports/event-summary', async (c) => {
   const fiscalYearRaw = c.req.query('fiscalYear');
   const eventCode = c.req.query('eventCode');

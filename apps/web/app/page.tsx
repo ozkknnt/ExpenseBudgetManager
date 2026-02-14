@@ -314,6 +314,73 @@ async function createBudgetItemAction(formData: FormData) {
   redirect(`/?${buildQuery({ fiscalYear, eventCode, message: '予算項目を作成しました' })}`);
 }
 
+async function copyEventDataAction(formData: FormData) {
+  'use server';
+
+  const fromFiscalYear = Number(formData.get('fromFiscalYear'));
+  const fromEventCode = String(formData.get('fromEventCode') ?? '').trim();
+  const toFiscalYear = Number(formData.get('toFiscalYear'));
+  const toEventCode = String(formData.get('toEventCode') ?? '').trim();
+
+  if (
+    !isValidFiscalYear(fromFiscalYear) ||
+    !isValidFiscalYear(toFiscalYear) ||
+    !fromEventCode ||
+    !toEventCode
+  ) {
+    redirect(
+      `/?${buildQuery({
+        fiscalYear: isValidFiscalYear(toFiscalYear) ? toFiscalYear : new Date().getFullYear(),
+        eventCode: toEventCode || fromEventCode,
+        error: 'コピー元/コピー先の年度・イベントを正しく指定してください'
+      })}`
+    );
+  }
+
+  if (fromFiscalYear === toFiscalYear && fromEventCode === toEventCode) {
+    redirect(
+      `/?${buildQuery({
+        fiscalYear: toFiscalYear,
+        eventCode: toEventCode,
+        error: 'コピー元とコピー先は別の年度/イベントを指定してください'
+      })}`
+    );
+  }
+
+  const res = await callApi('/budget-items/copy', {
+    method: 'POST',
+    body: JSON.stringify({
+      fromFiscalYear,
+      fromEventCode,
+      toFiscalYear,
+      toEventCode
+    })
+  });
+
+  if (!res.ok) {
+    const errorText =
+      res.status === 404
+        ? 'コピー元またはコピー先イベントが見つかりません'
+        : '予算/実績のコピーに失敗しました';
+    redirect(
+      `/?${buildQuery({
+        fiscalYear: toFiscalYear,
+        eventCode: toEventCode,
+        error: errorText
+      })}`
+    );
+  }
+
+  revalidatePath('/');
+  redirect(
+    `/?${buildQuery({
+      fiscalYear: toFiscalYear,
+      eventCode: toEventCode,
+      message: '予算/実績をコピーしました'
+    })}`
+  );
+}
+
 
 async function updateBudgetItemAction(formData: FormData) {
   'use server';
@@ -612,6 +679,43 @@ export default async function Home({ searchParams }: HomeProps) {
         </ul>
 
         <hr className="divider" />
+        <h2>予算・実績を全コピー</h2>
+        <form className="createForm" action={copyEventDataAction}>
+          <label>
+            <span>コピー元年度</span>
+            <input name="fromFiscalYear" type="number" min={2000} max={2100} defaultValue={fiscalYear} required />
+          </label>
+
+          <label>
+            <span>コピー元イベント</span>
+            <select name="fromEventCode" defaultValue={selectedEventCode} required>
+              {events.map((event) => (
+                <option key={`src-${event.eventId}`} value={event.eventCode}>
+                  {event.eventCode}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            <span>コピー先年度</span>
+            <input name="toFiscalYear" type="number" min={2000} max={2100} defaultValue={fiscalYear} required />
+          </label>
+
+          <label>
+            <span>コピー先イベント</span>
+            <select name="toEventCode" defaultValue={selectedEventCode} required>
+              {events.map((event) => (
+                <option key={`dst-${event.eventId}`} value={event.eventCode}>
+                  {event.eventCode}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <button type="submit">コピー実行</button>
+        </form>
+
 
         <h2>予算項目を追加</h2>
         <form className="createForm" action={createBudgetItemAction}>
