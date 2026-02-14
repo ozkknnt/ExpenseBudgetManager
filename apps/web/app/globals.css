@@ -99,9 +99,13 @@ h2 {
 
 .createForm {
   display: grid;
-  grid-template-columns: 2fr 1fr 2fr auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   align-items: end;
+}
+
+.copyForm {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .notice {

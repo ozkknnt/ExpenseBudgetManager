@@ -278,7 +278,6 @@ async function createBudgetItemAction(formData: FormData) {
   const eventCode = String(formData.get('eventCode') ?? '');
   const eventId = String(formData.get('eventId') ?? '');
   const expenseCategoryId = String(formData.get('expenseCategoryId') ?? '');
-  const budgetItemCode = String(formData.get('budgetItemCode') ?? '').trim();
   const budgetItemName = String(formData.get('budgetItemName') ?? '').trim();
 
   if (
@@ -286,9 +285,7 @@ async function createBudgetItemAction(formData: FormData) {
     !eventCode ||
     !eventId ||
     !expenseCategoryId ||
-    !budgetItemCode ||
     !budgetItemName ||
-    budgetItemCode.length > CODE_MAX_LENGTH ||
     budgetItemName.length > NAME_MAX_LENGTH
   ) {
     redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '必須項目を入力してください' })}`);
@@ -300,13 +297,12 @@ async function createBudgetItemAction(formData: FormData) {
       fiscalYear,
       eventId,
       expenseCategoryId,
-      budgetItemCode,
       budgetItemName
     })
   });
 
   if (!res.ok) {
-    const errorText = res.status === 409 ? '重複する予算項目コードです' : '予算項目の作成に失敗しました';
+    const errorText = res.status === 409 ? '重複する予算項目です' : '予算項目の作成に失敗しました';
     redirect(`/?${buildQuery({ fiscalYear, eventCode, error: errorText })}`);
   }
 
@@ -389,16 +385,13 @@ async function updateBudgetItemAction(formData: FormData) {
   const fiscalYear = Number(formData.get('fiscalYear'));
   const eventCode = String(formData.get('eventCode') ?? '');
   const expenseCategoryId = String(formData.get('expenseCategoryId') ?? '');
-  const budgetItemCode = String(formData.get('budgetItemCode') ?? '').trim();
   const budgetItemName = String(formData.get('budgetItemName') ?? '').trim();
 
   if (
     !isValidFiscalYear(fiscalYear) ||
     !budgetItemId ||
     !expenseCategoryId ||
-    !budgetItemCode ||
     !budgetItemName ||
-    budgetItemCode.length > CODE_MAX_LENGTH ||
     budgetItemName.length > NAME_MAX_LENGTH
   ) {
     redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '予算項目更新の入力が不足しています' })}`);
@@ -408,13 +401,12 @@ async function updateBudgetItemAction(formData: FormData) {
     method: 'PUT',
     body: JSON.stringify({
       expenseCategoryId,
-      budgetItemCode,
       budgetItemName
     })
   });
 
   if (!res.ok) {
-    const message = res.status === 409 ? '重複する予算項目コードです' : '予算項目の更新に失敗しました';
+    const message = res.status === 409 ? '重複する予算項目です' : '予算項目の更新に失敗しました';
     redirect(`/?${buildQuery({ fiscalYear, eventCode, error: message })}`);
   }
 
@@ -576,33 +568,6 @@ export default async function Home({ searchParams }: HomeProps) {
       <section className="card">
         <p className="badge">monorepo bootstrap succeeded</p>
         <h1>Expense Budget Manager</h1>
-
-        <form className="controls" method="get">
-          <label>
-            <span>年度</span>
-            <input
-              type="number"
-              name="fiscalYear"
-              defaultValue={Number.isInteger(fiscalYear) ? fiscalYear : currentYear}
-              min={2000}
-              max={2100}
-            />
-          </label>
-
-          <label>
-            <span>イベント</span>
-            <select name="eventCode" defaultValue={selectedEventCode}>
-              {events.map((event) => (
-                <option key={event.eventId} value={event.eventCode}>
-                  {event.eventCode}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <button type="submit">表示</button>
-        </form>
-
         {searchParams?.message && <p className="notice success">{searchParams.message}</p>}
         {searchParams?.error && <p className="notice error">{searchParams.error}</p>}
 
@@ -679,8 +644,34 @@ export default async function Home({ searchParams }: HomeProps) {
         </ul>
 
         <hr className="divider" />
-        <h2>予算・実績を全コピー</h2>
-        <form className="createForm" action={copyEventDataAction}>
+        <h2>条件指定・全コピー</h2>
+        <form className="controls" method="get">
+          <label>
+            <span>年度</span>
+            <input
+              type="number"
+              name="fiscalYear"
+              defaultValue={Number.isInteger(fiscalYear) ? fiscalYear : currentYear}
+              min={2000}
+              max={2100}
+            />
+          </label>
+
+          <label>
+            <span>イベント</span>
+            <select name="eventCode" defaultValue={selectedEventCode}>
+              {events.map((event) => (
+                <option key={event.eventId} value={event.eventCode}>
+                  {event.eventCode}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <button type="submit">表示</button>
+        </form>
+
+        <form className="createForm copyForm" action={copyEventDataAction}>
           <label>
             <span>コピー元年度</span>
             <input name="fromFiscalYear" type="number" min={2000} max={2100} defaultValue={fiscalYear} required />
@@ -717,7 +708,10 @@ export default async function Home({ searchParams }: HomeProps) {
         </form>
 
 
+        <hr className="divider" />
+
         <h2>予算項目を追加</h2>
+        <p className="muted">予算項目コードはイベント内で自動採番されます。</p>
         <form className="createForm" action={createBudgetItemAction}>
           <input type="hidden" name="fiscalYear" value={String(fiscalYear)} />
           <input type="hidden" name="eventCode" value={selectedEventCode} />
@@ -734,12 +728,6 @@ export default async function Home({ searchParams }: HomeProps) {
               ))}
             </select>
           </label>
-
-          <label>
-            <span>予算項目コード</span>
-            <input name="budgetItemCode" required maxLength={50} />
-          </label>
-
           <label>
             <span>予算項目名</span>
             <input name="budgetItemName" required maxLength={100} />
@@ -788,8 +776,6 @@ export default async function Home({ searchParams }: HomeProps) {
                           </option>
                         ))}
                       </select>
-
-                      <input name="budgetItemCode" defaultValue={item.budgetItemCode} required />
                       <input name="budgetItemName" defaultValue={item.budgetItemName} required />
                       <button type="submit">項目更新</button>
                     </form>

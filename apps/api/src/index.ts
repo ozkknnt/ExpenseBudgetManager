@@ -42,6 +42,29 @@ const isUniqueViolation = (error: unknown) =>
   'code' in error &&
   (error as { code?: string }).code === 'P2002';
 
+const toSequenceCode = (value: number) => String(value).padStart(3, '0');
+
+const nextBudgetItemCode = async (fiscalYear: number, eventId: string) => {
+  const existingCodes = await prisma.mstBudgetItem.findMany({
+    where: {
+      fiscalYear,
+      eventId
+    },
+    select: {
+      budgetItemCode: true
+    }
+  });
+
+  let maxCode = 0;
+  for (const row of existingCodes) {
+    const code = normalizeString(row.budgetItemCode);
+    if (/^\d+$/.test(code)) {
+      maxCode = Math.max(maxCode, Number(code));
+    }
+  }
+  return toSequenceCode(maxCode + 1);
+};
+
 app.get('/health', async (c) => {
   await prisma.$queryRaw`SELECT 1`;
   return c.json({ ok: true });
@@ -255,8 +278,8 @@ app.get('/budget-items', async (c) => {
 
 app.post('/budget-items', async (c) => {
   const body = await c.req.json().catch(() => null);
+  const budgetItemCode = normalizeString(body?.budgetItemCode);
   if (
-    !isValidCode(body?.budgetItemCode) ||
     !isValidName(body?.budgetItemName) ||
     !isNonEmptyString(body?.eventId) ||
     !isNonEmptyString(body?.expenseCategoryId) ||
@@ -265,7 +288,7 @@ app.post('/budget-items', async (c) => {
     return c.json(
       {
         message:
-          'fiscalYear(2000-2100), eventId, expenseCategoryId, budgetItemCode(<=50), budgetItemName(<=100) are required'
+          'fiscalYear(2000-2100), eventId, expenseCategoryId, budgetItemName(<=100) are required'
       },
       400
     );
@@ -273,6 +296,10 @@ app.post('/budget-items', async (c) => {
 
   if (!UUID_REGEX.test(body.eventId) || !UUID_REGEX.test(body.expenseCategoryId)) {
     return c.json({ message: 'eventId and expenseCategoryId must be valid uuid' }, 400);
+  }
+
+  if (budgetItemCode && !isValidCode(budgetItemCode)) {
+    return c.json({ message: 'budgetItemCode must be <= 50 chars' }, 400);
   }
 
   try {
@@ -293,12 +320,15 @@ app.post('/budget-items', async (c) => {
       return c.json({ message: 'expense category not found' }, 404);
     }
 
+    const resolvedBudgetItemCode =
+      budgetItemCode || (await nextBudgetItemCode(body.fiscalYear, body.eventId));
+
     const created = await prisma.mstBudgetItem.create({
       data: {
         fiscalYear: body.fiscalYear,
         eventId: body.eventId,
         expenseCategoryId: body.expenseCategoryId,
-        budgetItemCode: normalizeString(body.budgetItemCode),
+        budgetItemCode: resolvedBudgetItemCode,
         budgetItemName: normalizeString(body.budgetItemName)
       }
     });
