@@ -1,5 +1,6 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { ConfirmSubmitButton } from './components/ConfirmSubmitButton';
 
 type EventItem = {
   eventId: string;
@@ -556,7 +557,11 @@ export default async function Home({ searchParams }: HomeProps) {
                 <input type="hidden" name="fiscalYear" value={String(fiscalYear)} />
                 <input type="hidden" name="eventCode" value={selectedEventCode} />
                 <input type="hidden" name="expenseCategoryId" value={category.expenseCategoryId} />
-                <button type="submit" className="dangerButton">削除</button>
+                <ConfirmSubmitButton
+                    label="削除"
+                    className="dangerButton"
+                    confirmMessage="この費目を削除します。よろしいですか？"
+                  />
               </form>
             </li>
           ))}
@@ -645,7 +650,11 @@ export default async function Home({ searchParams }: HomeProps) {
                       <input type="hidden" name="budgetItemId" value={item.budgetItemId} />
                       <input type="hidden" name="fiscalYear" value={String(fiscalYear)} />
                       <input type="hidden" name="eventCode" value={selectedEventCode} />
-                      <button type="submit" className="dangerButton">項目削除</button>
+                      <ConfirmSubmitButton
+                        label="項目削除"
+                        className="dangerButton"
+                        confirmMessage="この予算項目を削除します。よろしいですか？"
+                      />
                     </form>
                   </div>
 
