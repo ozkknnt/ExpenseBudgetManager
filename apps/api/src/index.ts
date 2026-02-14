@@ -6,9 +6,28 @@ import { prisma } from 'db';
 const app = new Hono();
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const CODE_MAX_LENGTH = 50;
+const NAME_MAX_LENGTH = 100;
+const MIN_FISCAL_YEAR = 2000;
+const MAX_FISCAL_YEAR = 2100;
+const MAX_AMOUNT = 2_000_000_000;
 
 const isNonEmptyString = (value: unknown): value is string =>
   typeof value === 'string' && value.trim().length > 0;
+
+const normalizeString = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
+
+const isValidFiscalYear = (value: unknown): value is number =>
+  typeof value === 'number' &&
+  Number.isInteger(value) &&
+  value >= MIN_FISCAL_YEAR &&
+  value <= MAX_FISCAL_YEAR;
+
+const isValidCode = (value: unknown): value is string =>
+  isNonEmptyString(value) && normalizeString(value).length <= CODE_MAX_LENGTH;
+
+const isValidName = (value: unknown): value is string =>
+  isNonEmptyString(value) && normalizeString(value).length <= NAME_MAX_LENGTH;
 
 const parseFiscalYear = (value: string | undefined) => {
   if (value === undefined) return undefined;
@@ -51,15 +70,18 @@ app.get('/expense-categories', async (c) => {
 
 app.post('/expense-categories', async (c) => {
   const body = await c.req.json().catch(() => null);
-  if (!isNonEmptyString(body?.expenseCategoryCode) || !isNonEmptyString(body?.expenseCategoryName)) {
-    return c.json({ message: 'expenseCategoryCode and expenseCategoryName are required' }, 400);
+  if (!isValidCode(body?.expenseCategoryCode) || !isValidName(body?.expenseCategoryName)) {
+    return c.json(
+      { message: 'expenseCategoryCode/name are required (code<=50, name<=100)' },
+      400
+    );
   }
 
   try {
     const created = await prisma.mstExpenseCategory.create({
       data: {
-        expenseCategoryCode: body.expenseCategoryCode,
-        expenseCategoryName: body.expenseCategoryName
+        expenseCategoryCode: normalizeString(body.expenseCategoryCode),
+        expenseCategoryName: normalizeString(body.expenseCategoryName)
       }
     });
 
@@ -88,12 +110,12 @@ app.put('/expense-categories/:expenseCategoryId', async (c) => {
     return c.json({ message: 'expenseCategoryCode or expenseCategoryName is required' }, 400);
   }
 
-  if (body.expenseCategoryCode !== undefined && !isNonEmptyString(body.expenseCategoryCode)) {
-    return c.json({ message: 'expenseCategoryCode must be non-empty string' }, 400);
+  if (body.expenseCategoryCode !== undefined && !isValidCode(body.expenseCategoryCode)) {
+    return c.json({ message: 'expenseCategoryCode must be non-empty and <= 50 chars' }, 400);
   }
 
-  if (body.expenseCategoryName !== undefined && !isNonEmptyString(body.expenseCategoryName)) {
-    return c.json({ message: 'expenseCategoryName must be non-empty string' }, 400);
+  if (body.expenseCategoryName !== undefined && !isValidName(body.expenseCategoryName)) {
+    return c.json({ message: 'expenseCategoryName must be non-empty and <= 100 chars' }, 400);
   }
 
   try {
@@ -108,8 +130,14 @@ app.put('/expense-categories/:expenseCategoryId', async (c) => {
     const updated = await prisma.mstExpenseCategory.update({
       where: { expenseCategoryId },
       data: {
-        expenseCategoryCode: body.expenseCategoryCode ?? undefined,
-        expenseCategoryName: body.expenseCategoryName ?? undefined
+        expenseCategoryCode:
+          body.expenseCategoryCode === undefined
+            ? undefined
+            : normalizeString(body.expenseCategoryCode),
+        expenseCategoryName:
+          body.expenseCategoryName === undefined
+            ? undefined
+            : normalizeString(body.expenseCategoryName)
       }
     });
 
@@ -155,8 +183,12 @@ app.get('/budget-items', async (c) => {
     return c.json({ message: 'fiscalYear must be an integer' }, 400);
   }
 
-  const eventCode = c.req.query('eventCode');
-  const expenseCategoryCode = c.req.query('expenseCategoryCode');
+  if (fiscalYear !== undefined && !isValidFiscalYear(fiscalYear)) {
+    return c.json({ message: 'fiscalYear must be between 2000 and 2100' }, 400);
+  }
+
+  const eventCode = normalizeString(c.req.query('eventCode'));
+  const expenseCategoryCode = normalizeString(c.req.query('expenseCategoryCode'));
 
   try {
     const items = await prisma.mstBudgetItem.findMany({
@@ -224,16 +256,16 @@ app.get('/budget-items', async (c) => {
 app.post('/budget-items', async (c) => {
   const body = await c.req.json().catch(() => null);
   if (
-    !isNonEmptyString(body?.budgetItemCode) ||
-    !isNonEmptyString(body?.budgetItemName) ||
+    !isValidCode(body?.budgetItemCode) ||
+    !isValidName(body?.budgetItemName) ||
     !isNonEmptyString(body?.eventId) ||
     !isNonEmptyString(body?.expenseCategoryId) ||
-    !Number.isInteger(body?.fiscalYear)
+    !isValidFiscalYear(body?.fiscalYear)
   ) {
     return c.json(
       {
         message:
-          'fiscalYear, eventId, expenseCategoryId, budgetItemCode and budgetItemName are required'
+          'fiscalYear(2000-2100), eventId, expenseCategoryId, budgetItemCode(<=50), budgetItemName(<=100) are required'
       },
       400
     );
@@ -266,8 +298,8 @@ app.post('/budget-items', async (c) => {
         fiscalYear: body.fiscalYear,
         eventId: body.eventId,
         expenseCategoryId: body.expenseCategoryId,
-        budgetItemCode: body.budgetItemCode,
-        budgetItemName: body.budgetItemName
+        budgetItemCode: normalizeString(body.budgetItemCode),
+        budgetItemName: normalizeString(body.budgetItemName)
       }
     });
 
@@ -321,16 +353,16 @@ app.put('/budget-items/:budgetItemId', async (c) => {
     return c.json({ message: 'expenseCategoryId must be valid uuid' }, 400);
   }
 
-  if (body.fiscalYear !== undefined && !Number.isInteger(body.fiscalYear)) {
-    return c.json({ message: 'fiscalYear must be an integer' }, 400);
+  if (body.fiscalYear !== undefined && !isValidFiscalYear(body.fiscalYear)) {
+    return c.json({ message: 'fiscalYear must be between 2000 and 2100' }, 400);
   }
 
-  if (body.budgetItemCode !== undefined && !isNonEmptyString(body.budgetItemCode)) {
-    return c.json({ message: 'budgetItemCode must be non-empty string' }, 400);
+  if (body.budgetItemCode !== undefined && !isValidCode(body.budgetItemCode)) {
+    return c.json({ message: 'budgetItemCode must be non-empty and <= 50 chars' }, 400);
   }
 
-  if (body.budgetItemName !== undefined && !isNonEmptyString(body.budgetItemName)) {
-    return c.json({ message: 'budgetItemName must be non-empty string' }, 400);
+  if (body.budgetItemName !== undefined && !isValidName(body.budgetItemName)) {
+    return c.json({ message: 'budgetItemName must be non-empty and <= 100 chars' }, 400);
   }
 
   if (body.actualFinalizedFlg !== undefined && typeof body.actualFinalizedFlg !== 'boolean') {
@@ -370,8 +402,10 @@ app.put('/budget-items/:budgetItemId', async (c) => {
         fiscalYear: body.fiscalYear ?? undefined,
         eventId: body.eventId ?? undefined,
         expenseCategoryId: body.expenseCategoryId ?? undefined,
-        budgetItemCode: body.budgetItemCode ?? undefined,
-        budgetItemName: body.budgetItemName ?? undefined,
+        budgetItemCode:
+          body.budgetItemCode === undefined ? undefined : normalizeString(body.budgetItemCode),
+        budgetItemName:
+          body.budgetItemName === undefined ? undefined : normalizeString(body.budgetItemName),
         actualFinalizedFlg: body.actualFinalizedFlg ?? undefined,
         actualFinalizedDate:
           body.actualFinalizedFlg === undefined
@@ -460,6 +494,10 @@ app.put('/budget-items/:budgetItemId/budgets', async (c) => {
     return c.json({ message: 'months array is required' }, 400);
   }
 
+  if (body.months.length !== 12) {
+    return c.json({ message: 'months must contain exactly 12 rows (1-12)' }, 400);
+  }
+
   const seenMonths = new Set<number>();
   for (const month of body.months as Array<{ fiscalMonth?: unknown; budgetAmount?: unknown }>) {
     if (!Number.isInteger(month?.fiscalMonth) || !Number.isInteger(month?.budgetAmount)) {
@@ -470,8 +508,8 @@ app.put('/budget-items/:budgetItemId/budgets', async (c) => {
       return c.json({ message: 'fiscalMonth must be between 1 and 12' }, 400);
     }
 
-    if ((month.budgetAmount as number) < 0) {
-      return c.json({ message: 'budgetAmount must be greater than or equal to 0' }, 400);
+    if ((month.budgetAmount as number) < 0 || (month.budgetAmount as number) > MAX_AMOUNT) {
+      return c.json({ message: 'budgetAmount must be between 0 and 2000000000' }, 400);
     }
 
     if (seenMonths.has(month.fiscalMonth as number)) {
@@ -568,6 +606,10 @@ app.put('/budget-items/:budgetItemId/actuals', async (c) => {
     return c.json({ message: 'months array is required' }, 400);
   }
 
+  if (body.months.length !== 12) {
+    return c.json({ message: 'months must contain exactly 12 rows (1-12)' }, 400);
+  }
+
   const seenMonths = new Set<number>();
   for (const month of body.months as Array<{ fiscalMonth?: unknown; actualAmount?: unknown }>) {
     if (!Number.isInteger(month?.fiscalMonth) || !Number.isInteger(month?.actualAmount)) {
@@ -578,8 +620,8 @@ app.put('/budget-items/:budgetItemId/actuals', async (c) => {
       return c.json({ message: 'fiscalMonth must be between 1 and 12' }, 400);
     }
 
-    if ((month.actualAmount as number) < 0) {
-      return c.json({ message: 'actualAmount must be greater than or equal to 0' }, 400);
+    if ((month.actualAmount as number) < 0 || (month.actualAmount as number) > MAX_AMOUNT) {
+      return c.json({ message: 'actualAmount must be between 0 and 2000000000' }, 400);
     }
 
     if (seenMonths.has(month.fiscalMonth as number)) {
@@ -709,14 +751,19 @@ app.get('/reports/event-summary', async (c) => {
     return c.json({ message: 'fiscalYear must be an integer' }, 400);
   }
 
-  if (!isNonEmptyString(eventCode)) {
+  if (!isValidFiscalYear(fiscalYear)) {
+    return c.json({ message: 'fiscalYear must be between 2000 and 2100' }, 400);
+  }
+
+  const eventCodeNormalized = normalizeString(eventCode);
+  if (!eventCodeNormalized) {
     return c.json({ message: 'eventCode is required' }, 400);
   }
 
   try {
     const event = await prisma.mstEvent.findFirst({
       where: {
-        eventCode,
+        eventCode: eventCodeNormalized,
         delFlg: false
       }
     });

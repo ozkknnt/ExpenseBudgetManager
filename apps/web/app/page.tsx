@@ -59,6 +59,11 @@ type HomeProps = {
 };
 
 const MONTHS = Array.from({ length: 12 }, (_, idx) => idx + 1);
+const CODE_MAX_LENGTH = 50;
+const NAME_MAX_LENGTH = 100;
+const MIN_FISCAL_YEAR = 2000;
+const MAX_FISCAL_YEAR = 2100;
+const MAX_AMOUNT = 2_000_000_000;
 
 function getBaseUrl() {
   return process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:3001';
@@ -81,12 +86,16 @@ function buildQuery(params: { fiscalYear: number; eventCode: string; message?: s
   return query.toString();
 }
 
+function isValidFiscalYear(value: number) {
+  return Number.isInteger(value) && value >= MIN_FISCAL_YEAR && value <= MAX_FISCAL_YEAR;
+}
+
 function parseMonthlyAmounts(formData: FormData, prefix: 'budget' | 'actual') {
   const months: Array<{ fiscalMonth: number; amount: number }> = [];
 
   for (const month of MONTHS) {
     const raw = Number(formData.get(`${prefix}_${month}`));
-    if (!Number.isInteger(raw) || raw < 0) {
+    if (!Number.isInteger(raw) || raw < 0 || raw > MAX_AMOUNT) {
       return null;
     }
     months.push({ fiscalMonth: month, amount: raw });
@@ -171,8 +180,17 @@ async function createExpenseCategoryAction(formData: FormData) {
   const expenseCategoryCode = String(formData.get('expenseCategoryCode') ?? '').trim();
   const expenseCategoryName = String(formData.get('expenseCategoryName') ?? '').trim();
 
-  if (!expenseCategoryCode || !expenseCategoryName) {
-    redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '費目コードと費目名は必須です' })}`);
+  if (!isValidFiscalYear(fiscalYear)) {
+    redirect(`/?${buildQuery({ fiscalYear: new Date().getFullYear(), eventCode, error: '年度は2000-2100で入力してください' })}`);
+  }
+
+  if (
+    !expenseCategoryCode ||
+    !expenseCategoryName ||
+    expenseCategoryCode.length > CODE_MAX_LENGTH ||
+    expenseCategoryName.length > NAME_MAX_LENGTH
+  ) {
+    redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '費目コード/費目名の入力値が不正です' })}`);
   }
 
   const res = await callApi('/expense-categories', {
@@ -201,7 +219,14 @@ async function updateExpenseCategoryAction(formData: FormData) {
   const expenseCategoryCode = String(formData.get('expenseCategoryCode') ?? '').trim();
   const expenseCategoryName = String(formData.get('expenseCategoryName') ?? '').trim();
 
-  if (!expenseCategoryId || !expenseCategoryCode || !expenseCategoryName) {
+  if (
+    !isValidFiscalYear(fiscalYear) ||
+    !expenseCategoryId ||
+    !expenseCategoryCode ||
+    !expenseCategoryName ||
+    expenseCategoryCode.length > CODE_MAX_LENGTH ||
+    expenseCategoryName.length > NAME_MAX_LENGTH
+  ) {
     redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '費目更新の入力が不足しています' })}`);
   }
 
@@ -229,7 +254,7 @@ async function deleteExpenseCategoryAction(formData: FormData) {
   const eventCode = String(formData.get('eventCode') ?? '');
   const expenseCategoryId = String(formData.get('expenseCategoryId') ?? '');
 
-  if (!expenseCategoryId) {
+  if (!isValidFiscalYear(fiscalYear) || !expenseCategoryId) {
     redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '費目IDが不正です' })}`);
   }
 
@@ -257,12 +282,14 @@ async function createBudgetItemAction(formData: FormData) {
   const budgetItemName = String(formData.get('budgetItemName') ?? '').trim();
 
   if (
-    !Number.isInteger(fiscalYear) ||
+    !isValidFiscalYear(fiscalYear) ||
     !eventCode ||
     !eventId ||
     !expenseCategoryId ||
     !budgetItemCode ||
-    !budgetItemName
+    !budgetItemName ||
+    budgetItemCode.length > CODE_MAX_LENGTH ||
+    budgetItemName.length > NAME_MAX_LENGTH
   ) {
     redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '必須項目を入力してください' })}`);
   }
@@ -298,7 +325,15 @@ async function updateBudgetItemAction(formData: FormData) {
   const budgetItemCode = String(formData.get('budgetItemCode') ?? '').trim();
   const budgetItemName = String(formData.get('budgetItemName') ?? '').trim();
 
-  if (!budgetItemId || !expenseCategoryId || !budgetItemCode || !budgetItemName) {
+  if (
+    !isValidFiscalYear(fiscalYear) ||
+    !budgetItemId ||
+    !expenseCategoryId ||
+    !budgetItemCode ||
+    !budgetItemName ||
+    budgetItemCode.length > CODE_MAX_LENGTH ||
+    budgetItemName.length > NAME_MAX_LENGTH
+  ) {
     redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '予算項目更新の入力が不足しています' })}`);
   }
 
@@ -327,7 +362,7 @@ async function deleteBudgetItemAction(formData: FormData) {
   const fiscalYear = Number(formData.get('fiscalYear'));
   const eventCode = String(formData.get('eventCode') ?? '');
 
-  if (!budgetItemId) {
+  if (!isValidFiscalYear(fiscalYear) || !budgetItemId) {
     redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '予算項目IDが不正です' })}`);
   }
 
@@ -351,8 +386,8 @@ async function upsertBudgetTableAction(formData: FormData) {
   const eventCode = String(formData.get('eventCode') ?? '');
 
   const rows = parseMonthlyAmounts(formData, 'budget');
-  if (!rows) {
-    redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '予算は0以上の整数で入力してください' })}`);
+  if (!isValidFiscalYear(fiscalYear) || !budgetItemId || !rows) {
+    redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '予算は0以上20億以下の整数で入力してください' })}`);
   }
 
   const res = await callApi(`/budget-items/${budgetItemId}/budgets`, {
@@ -378,8 +413,8 @@ async function upsertActualTableAction(formData: FormData) {
   const eventCode = String(formData.get('eventCode') ?? '');
 
   const rows = parseMonthlyAmounts(formData, 'actual');
-  if (!rows) {
-    redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '実績は0以上の整数で入力してください' })}`);
+  if (!isValidFiscalYear(fiscalYear) || !budgetItemId || !rows) {
+    redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '実績は0以上20億以下の整数で入力してください' })}`);
   }
 
   const res = await callApi(`/budget-items/${budgetItemId}/actuals`, {
@@ -405,6 +440,10 @@ async function finalizeActualAction(formData: FormData) {
   const fiscalYear = Number(formData.get('fiscalYear'));
   const eventCode = String(formData.get('eventCode') ?? '');
 
+  if (!isValidFiscalYear(fiscalYear) || !budgetItemId) {
+    redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '確定対象が不正です' })}`);
+  }
+
   const res = await callApi(`/budget-items/${budgetItemId}/finalize-actual`, {
     method: 'POST',
     body: JSON.stringify({})
@@ -425,6 +464,10 @@ async function unfinalizeActualAction(formData: FormData) {
   const fiscalYear = Number(formData.get('fiscalYear'));
   const eventCode = String(formData.get('eventCode') ?? '');
 
+  if (!isValidFiscalYear(fiscalYear) || !budgetItemId) {
+    redirect(`/?${buildQuery({ fiscalYear, eventCode, error: '確定解除対象が不正です' })}`);
+  }
+
   const res = await callApi(`/budget-items/${budgetItemId}/unfinalize-actual`, {
     method: 'POST',
     body: JSON.stringify({})
@@ -443,7 +486,8 @@ export default async function Home({ searchParams }: HomeProps) {
   const categories = await getExpenseCategories();
 
   const currentYear = new Date().getFullYear();
-  const fiscalYear = Number(searchParams?.fiscalYear ?? currentYear);
+  const fiscalYearRaw = Number(searchParams?.fiscalYear ?? currentYear);
+  const fiscalYear = isValidFiscalYear(fiscalYearRaw) ? fiscalYearRaw : currentYear;
   const selectedEventCode =
     searchParams?.eventCode ?? (events.length > 0 ? events[0].eventCode : '');
 
