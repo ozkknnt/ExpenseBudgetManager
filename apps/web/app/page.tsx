@@ -333,12 +333,44 @@ async function copyEventDataAction(formData: FormData) {
     );
   }
 
-  if (fromFiscalYear === toFiscalYear && fromEventCode === toEventCode) {
+  if (fromFiscalYear === toFiscalYear || fromEventCode === toEventCode) {
     redirect(
       `/?${buildQuery({
         fiscalYear: toFiscalYear,
         eventCode: toEventCode,
-        error: 'コピー元とコピー先は別の年度/イベントを指定してください'
+        error: 'コピー元とコピー先は年度とイベントの両方を変更してください'
+      })}`
+    );
+  }
+
+  const eventsRes = await callApi('/events');
+  const events = eventsRes.ok
+    ? ((await eventsRes.json()) as Array<{ eventCode: string; eventOrder: number }>)
+    : [];
+
+  const fromEventOrder = events.find((event) => event.eventCode === fromEventCode)?.eventOrder;
+  const toEventOrder = events.find((event) => event.eventCode === toEventCode)?.eventOrder;
+
+  if (fromEventOrder === undefined || toEventOrder === undefined) {
+    redirect(
+      `/?${buildQuery({
+        fiscalYear: toFiscalYear,
+        eventCode: toEventCode,
+        error: 'イベント情報の取得に失敗しました'
+      })}`
+    );
+  }
+
+  const isFutureDestination =
+    toFiscalYear > fromFiscalYear ||
+    (toFiscalYear === fromFiscalYear && toEventOrder > fromEventOrder);
+
+  if (!isFutureDestination) {
+    redirect(
+      `/?${buildQuery({
+        fiscalYear: toFiscalYear,
+        eventCode: toEventCode,
+        error: 'コピー先はコピー元より未来の年度/イベントを指定してください'
       })}`
     );
   }
@@ -354,10 +386,12 @@ async function copyEventDataAction(formData: FormData) {
   });
 
   if (!res.ok) {
+    const errorBody = (await res.json().catch(() => null)) as { message?: string } | null;
     const errorText =
-      res.status === 404
+      errorBody?.message ??
+      (res.status === 404
         ? 'コピー元またはコピー先イベントが見つかりません'
-        : '予算/実績のコピーに失敗しました';
+        : '予算/実績のコピーに失敗しました');
     redirect(
       `/?${buildQuery({
         fiscalYear: toFiscalYear,
@@ -367,12 +401,24 @@ async function copyEventDataAction(formData: FormData) {
     );
   }
 
+  const copyResult = (await res.json().catch(() => null)) as
+    | {
+        copiedItemCount?: number;
+        copiedBudgetRowCount?: number;
+        copiedActualRowCount?: number;
+      }
+    | null;
+
+  const copiedItemCount = copyResult?.copiedItemCount ?? 0;
+  const copiedBudgetRowCount = copyResult?.copiedBudgetRowCount ?? 0;
+  const copiedActualRowCount = copyResult?.copiedActualRowCount ?? 0;
+
   revalidatePath('/');
   redirect(
     `/?${buildQuery({
       fiscalYear: toFiscalYear,
       eventCode: toEventCode,
-      message: '予算/実績をコピーしました'
+      message: `予算/実績をコピーしました（項目${copiedItemCount}件・予算${copiedBudgetRowCount}件・実績${copiedActualRowCount}件）`
     })}`
   );
 }

@@ -795,8 +795,11 @@ app.post('/budget-items/copy', async (c) => {
     );
   }
 
-  if (fromFiscalYear === toFiscalYear && fromEventCode === toEventCode) {
-    return c.json({ message: 'copy source and destination must be different' }, 400);
+  if (fromFiscalYear === toFiscalYear || fromEventCode === toEventCode) {
+    return c.json(
+      { message: 'copy source and destination must use different fiscalYear and eventCode' },
+      400
+    );
   }
 
   try {
@@ -821,6 +824,17 @@ app.post('/budget-items/copy', async (c) => {
 
     if (!toEvent) {
       return c.json({ message: 'destination event not found' }, 404);
+    }
+
+    const isFutureDestination =
+      toFiscalYear > fromFiscalYear ||
+      (toFiscalYear === fromFiscalYear && toEvent.eventOrder > fromEvent.eventOrder);
+
+    if (!isFutureDestination) {
+      return c.json(
+        { message: 'destination must be future (later fiscalYear or later eventOrder)' },
+        400
+      );
     }
 
     const sourceItems = await prisma.mstBudgetItem.findMany({
