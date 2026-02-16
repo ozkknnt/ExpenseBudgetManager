@@ -1,6 +1,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { ConfirmSubmitButton } from './components/ConfirmSubmitButton';
+import { CopyEventDataForm } from './components/CopyEventDataForm';
 
 type EventItem = {
   eventId: string;
@@ -717,41 +718,12 @@ export default async function Home({ searchParams }: HomeProps) {
           <button type="submit">表示</button>
         </form>
 
-        <form className="createForm copyForm" action={copyEventDataAction}>
-          <label>
-            <span>コピー元年度</span>
-            <input name="fromFiscalYear" type="number" min={2000} max={2100} defaultValue={fiscalYear} required />
-          </label>
-
-          <label>
-            <span>コピー元イベント</span>
-            <select name="fromEventCode" defaultValue={selectedEventCode} required>
-              {events.map((event) => (
-                <option key={`src-${event.eventId}`} value={event.eventCode}>
-                  {event.eventCode}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            <span>コピー先年度</span>
-            <input name="toFiscalYear" type="number" min={2000} max={2100} defaultValue={fiscalYear} required />
-          </label>
-
-          <label>
-            <span>コピー先イベント</span>
-            <select name="toEventCode" defaultValue={selectedEventCode} required>
-              {events.map((event) => (
-                <option key={`dst-${event.eventId}`} value={event.eventCode}>
-                  {event.eventCode}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <button type="submit">コピー実行</button>
-        </form>
+        <CopyEventDataForm
+          events={events}
+          fiscalYear={fiscalYear}
+          selectedEventCode={selectedEventCode}
+          action={copyEventDataAction}
+        />
 
 
         <hr className="divider" />
