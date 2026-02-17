@@ -4,25 +4,26 @@
 
 body {
   margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #f5f7fb;
+  font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Noto Sans JP', sans-serif;
+  background: radial-gradient(circle at 0% 0%, #eef6ff 0%, #f6f7fb 50%, #f2f5ff 100%);
   color: #1a1a1a;
 }
 
 .page {
   min-height: 100vh;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 24px;
 }
 
 .card {
-  width: min(960px, 100%);
-  background: #fff;
+  width: min(1100px, 100%);
+  background: #ffffffcc;
+  backdrop-filter: blur(4px);
   padding: 32px;
-  border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 24px 56px rgba(16, 33, 80, 0.12);
 }
 
 .badge {
@@ -35,6 +36,28 @@ body {
   margin-bottom: 16px;
 }
 
+
+.mainTitle {
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+
+.sectionBlock {
+  border: 1px solid #e3ebf8;
+  border-radius: 14px;
+  background: #fbfdff;
+  padding: 16px;
+}
+
+.sectionTitle {
+  margin: 0 0 12px;
+  font-size: 18px;
+  color: #1f3568;
+}
+
+.sectionBlock + .sectionBlock {
+  margin-top: 12px;
+}
 h1 {
   margin: 0;
 }
@@ -164,7 +187,7 @@ h2 {
 }
 
 .divider {
-  margin: 28px 0;
+  margin: 18px 0;
   border: none;
   border-top: 1px solid #e8ecf3;
 }
@@ -502,4 +525,70 @@ h2 {
   border: 1px solid #ffd79a;
   border-radius: 8px;
   padding: 8px 10px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.dashboardLayout {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.mainContent {
+  min-width: 0;
+}
+
+.sidebarMenu {
+  position: sticky;
+  top: 20px;
+  align-self: start;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #dfe8fa;
+  border-radius: 12px;
+  background: #f7faff;
+}
+
+.sidebarTitle {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #4664a3;
+}
+
+.sidebarMenu a {
+  display: block;
+  text-decoration: none;
+  color: #1e3c7b;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+
+.sidebarMenu a:hover {
+  background: #eaf1ff;
+  border-color: #cddcfb;
+}
+
+@media (max-width: 980px) {
+  .dashboardLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebarMenu {
+    position: static;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: center;
+  }
+
+  .sidebarTitle {
+    grid-column: 1 / -1;
+  }
 }

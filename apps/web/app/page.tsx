@@ -613,14 +613,25 @@ export default async function Home({ searchParams }: HomeProps) {
   return (
     <main className="page">
       <section className="card">
+        <div className="dashboardLayout">
+          <aside className="sidebarMenu" aria-label="ページメニュー">
+            <p className="sidebarTitle">メニュー</p>
+            <a href="#budget-register-section">予算登録</a>
+            <a href="#actual-register-section">実績登録</a>
+            <a href="#graph-section">グラフ</a>
+          </aside>
+
+          <div className="mainContent">
         <p className="badge">monorepo bootstrap succeeded</p>
-        <h1>Expense Budget Manager</h1>
+        <h1 className="mainTitle">Expense Budget Manager</h1>
         {searchParams?.message && <p className="notice success">{searchParams.message}</p>}
         {searchParams?.error && <p className="notice error">{searchParams.error}</p>}
 
-        <p className="sub">API: /reports/event-summary</p>
+        <section className="sectionBlock" id="graph-section">
+          <h2 className="sectionTitle">集計サマリー</h2>
+          <p className="sub">API: /reports/event-summary</p>
 
-        {summary === null ? (
+          {summary === null ? (
           <p className="muted">集計データを取得できませんでした。</p>
         ) : series.length === 0 ? (
           <p className="muted">対象データがありません。</p>
@@ -643,10 +654,12 @@ export default async function Home({ searchParams }: HomeProps) {
             })}
           </ul>
         )}
+        </section>
 
         <hr className="divider" />
 
-        <h2>費目マスタメンテ</h2>
+        <section className="sectionBlock">
+          <h2 className="sectionTitle">費目マスタメンテ</h2>
         <form className="createForm categoryCreateForm" action={createExpenseCategoryAction}>
           <input type="hidden" name="fiscalYear" value={String(fiscalYear)} />
           <input type="hidden" name="eventCode" value={selectedEventCode} />
@@ -689,9 +702,11 @@ export default async function Home({ searchParams }: HomeProps) {
             </li>
           ))}
         </ul>
+        </section>
 
         <hr className="divider" />
-        <h2>条件指定・全コピー</h2>
+        <section className="sectionBlock">
+          <h2 className="sectionTitle">条件指定・全コピー</h2>
         <form className="controls" method="get">
           <label>
             <span>年度</span>
@@ -724,11 +739,12 @@ export default async function Home({ searchParams }: HomeProps) {
           selectedEventCode={selectedEventCode}
           action={copyEventDataAction}
         />
-
+        </section>
 
         <hr className="divider" />
 
-        <h2>予算項目を追加</h2>
+        <section className="sectionBlock" id="budget-register-section">
+          <h2 className="sectionTitle">予算項目を追加</h2>
         <p className="muted">予算項目コードはイベント内で自動採番されます。</p>
         <form className="createForm" action={createBudgetItemAction}>
           <input type="hidden" name="fiscalYear" value={String(fiscalYear)} />
@@ -753,8 +769,10 @@ export default async function Home({ searchParams }: HomeProps) {
 
           <button type="submit">作成</button>
         </form>
+        </section>
 
-        <h2>予算項目メンテ（月次一括入力）</h2>
+        <section className="sectionBlock" id="actual-register-section">
+          <h2 className="sectionTitle">予算項目メンテ（月次一括入力）</h2>
         {budgetItems.length === 0 ? (
           <p className="muted">予算項目はまだありません。</p>
         ) : (
@@ -907,6 +925,9 @@ export default async function Home({ searchParams }: HomeProps) {
             })}
           </ul>
         )}
+        </section>
+          </div>
+        </div>
       </section>
     </main>
   );
