@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "lint": "echo 'api: no lint'"
+    "lint": "echo 'api: no lint'",
+    "test": "tsx --test src/**/*.test.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.12.2",
