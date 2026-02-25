@@ -1,37 +1,44 @@
-<<<<<<< HEAD
 # ExpenseBudgetManager
 
 ## セットアップ
 
-1) pnpm i
+1) `.env.example` を `.env` にコピーして必要なら値を調整
 
-2) pnpm db:up
+2) 依存関係をインストール
 
-3) pnpm db:migrate
+```sh
+pnpm i
+```
 
-4) pnpm db:seed
+3) PostgreSQL を起動
 
-5) pnpm dev
-=======
-# ExpenseBudgetManager API
+```sh
+pnpm db:up
+```
 
-## Setup
-1. Copy `.env.example` to `.env` and adjust if needed.
-2. Start Postgres:
-   ```sh
-   docker-compose up -d
-   ```
-3. Install dependencies:
-   ```sh
-   npm install
-   ```
-4. Start API:
-   ```sh
-   npm run dev
-   ```
+4) マイグレーションを適用
+
+```sh
+pnpm db:migrate
+```
+
+5) シードデータを投入
+
+```sh
+pnpm db:seed
+```
+
+6) 開発サーバーを起動（Web + API）
+
+```sh
+pnpm dev
+```
+
+Web: `http://localhost:3000`  
+API: `http://localhost:3001`
 
 ## Health check
+
 ```sh
-curl -i http://localhost:3000/health
+curl -i http://localhost:3001/health
 ```
->>>>>>> origin/vk/d44f-t2-01-api
