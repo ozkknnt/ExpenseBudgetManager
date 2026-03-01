@@ -13,6 +13,7 @@ type CopyEventDataFormProps = {
   events: EventItem[];
   fiscalYear: number;
   selectedEventCode: string;
+  returnPath: '/budget' | '/actual' | '/graph' | '/categories' | '/copy';
   action: (formData: FormData) => void | Promise<void>;
 };
 
@@ -20,6 +21,7 @@ export function CopyEventDataForm({
   events,
   fiscalYear,
   selectedEventCode,
+  returnPath,
   action
 }: CopyEventDataFormProps) {
   const initialToEventCode =
@@ -47,6 +49,7 @@ export function CopyEventDataForm({
 
   return (
     <form className="createForm copyForm" action={action}>
+      <input type="hidden" name="returnPath" value={returnPath} />
       <label>
         <span>コピー元年度</span>
         <input
